@@ -8,6 +8,14 @@ URL: https://towardsdatascience.com/discover-3d-point-cloud-processing-with-pyth
 
 import numpy as np
 import os
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
+
+# to switch to 'automatic' (i.e. interactive) plots.
+# %matplotlib auto # it works in Spyder IDE without a problem, but the editor 
+# shows "invalid syntax" error  
+# You can also set it on by Tools > Preferences > IPython Console > Graphics 
+# > Graphics backend > Automatic/Inline
 
 #%%
 
@@ -31,8 +39,28 @@ else:
 pcd = np.loadtxt(file_path, skiprows=1, max_rows=1_000_000) # X Y Z R G B
 # original row size = 1_505_010
 
+#%% Extracting desired attributes
+
 xyz = pcd[:, :3]
 rgb = pcd[:, 3:]
 
-#%%
+#%% Attribute-based data analysis
+
+zMean = xyz[:, 2].mean() # or np.mean(xyz, axis=0)[2]
+print(zMean, '\n')
+
+pcd_1meter_within_zMean = pcd[ np.abs(pcd[:,2] - zMean) <= 1. ]
+print(pcd_1meter_within_zMean, '\n')
+print(pcd_1meter_within_zMean.shape)
+
+#%% Basic 3D Visualisation
+
+xyz = pcd_1meter_within_zMean[:, :3]
+rgb = pcd_1meter_within_zMean[:, 3:]
+
+ax = plt.axes(projection='3d')
+ax.scatter(xyz[:,0], xyz[:,1], xyz[:,2], c = rgb/255, s=0.01) # s: Marker size
+plt.show()
+# You can turn on the interactive mode without using the magic command %matplotlib auto
+plt.ioff() # plt.ion()
 
