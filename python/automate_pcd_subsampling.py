@@ -114,3 +114,35 @@ xb, yb, zb = grid_barycenter[:,0], grid_barycenter[:,1], grid_barycenter[:,2]
 # ax.scatter(xb, yb, zb, c=decimated_colors/256, s=0.01)
 ax.scatter(xb, yb, zb, c='blue', s=0.01)
 plt.show()
+
+#%% Automate everything with a function
+
+def grid_subsampling(points, voxel_size): 
+    # nb_voxels = np.ceil((np.max(points, axis=0) - np.min(points, axis=0)) / voxel_size)
+    voxel_indices = ((points - np.min(points, axis=0)) // voxel_size).astype(int)
+    non_empty_voxel_keys, inverse, nb_pts_per_voxel = np.unique(voxel_indices, 
+                                                                axis=0, 
+                                                                return_inverse=True, 
+                                                                return_counts=True)
+    idx_pts_vox_sorted = np.argsort(inverse)
+    voxel_grid = {}
+    grid_barycenter, grid_candidate_center = [], []
+    last_seen = 0
+
+    for idx, vox in enumerate(non_empty_voxel_keys):
+        voxel_grid[tuple(vox)] = points[ idx_pts_vox_sorted[ last_seen : last_seen+nb_pts_per_voxel[idx] ]]
+        grid_barycenter.append( np.mean( voxel_grid[tuple(vox)], axis=0 ))
+        argmin_term = voxel_grid[tuple(vox)] - np.mean(voxel_grid[tuple(vox)], axis=0)
+        distance = np.linalg.norm(argmin_term, axis=1)
+        grid_candidate_center.append( voxel_grid[tuple(vox)][distance.argmin()])
+        last_seen += nb_pts_per_voxel[idx]
+
+    return grid_candidate_center
+
+
+grid_sampled_point_cloud = grid_subsampling(points, 6)
+
+file_path = os.path.join(directory, filename[:-4], "_sampled.xyz")
+np.savetxt(file_path, grid_sampled_point_cloud, delimiter=",", fmt="%s")
+
+#%%
