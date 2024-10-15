@@ -29,7 +29,7 @@ kdtree_search = o3d.geometry.KDTreeSearchParamHybrid(radius= 0.1, max_nn= 16) # 
 pcd.estimate_normals(search_param= kdtree_search, 
                      fast_normal_computation= True)
 
-#%% RANSAC for planar shape detection
+#%% RANSAC segmentation for planar shape detection
 
 plane_model, inliers = pcd.segment_plane(distance_threshold= 0.01, # automate this!
                                          ransac_n= 3, # 3 for plane
@@ -43,4 +43,19 @@ outlier_pcd.paint_uniform_color([0.6, 0.6, 0.6]) # Grey
 
 o3d.visualization.draw_geometries([inlier_pcd, outlier_pcd])
 
+#%% DBSCAN cllustering on a smaller sample
+
+labels = np.array(pcd.cluster_dbscan(eps=0.05, min_points=10)) # radius of 5 cm, min. 10 points to form a cluster
+
+max_label = labels.max()
+colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
+colors[labels < 0] = 0
+pcd.colors = o3d.utility.Vector3dVector(colors[:, :3])
+o3d.visualization.draw_geometries([pcd])
+
 #%%
+
+
+
+
+
