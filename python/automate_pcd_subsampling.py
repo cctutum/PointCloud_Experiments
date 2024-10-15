@@ -118,7 +118,8 @@ plt.show()
 #%% Automate everything with a function
 
 def grid_subsampling(points, voxel_size): 
-    # nb_voxels = np.ceil((np.max(points, axis=0) - np.min(points, axis=0)) / voxel_size)
+    nb_vox = np.ceil((np.max(points, axis=0) - np.min(points, axis=0)) / voxel_size).astype(np.int32)
+    print(f"Number of voxels in x-axis= {nb_vox[0]}, y-axis= {nb_vox[1]}, z-axis= {nb_vox[2]}.")
     voxel_indices = ((points - np.min(points, axis=0)) // voxel_size).astype(int)
     non_empty_voxel_keys, inverse, nb_pts_per_voxel = np.unique(voxel_indices, 
                                                                 axis=0, 
@@ -142,7 +143,7 @@ def grid_subsampling(points, voxel_size):
 
 grid_sampled_point_cloud = grid_subsampling(points, 6)
 
-file_path = os.path.join(directory, filename[:-4], "_sampled.xyz")
+file_path = os.path.join(directory, f"{filename[:-4]}_sampled.xyz")
 np.savetxt(file_path, grid_sampled_point_cloud, delimiter=",", fmt="%s")
 
 #%%
