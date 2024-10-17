@@ -25,7 +25,7 @@ file_path = os.path.join(directory, filename)
 pcd = o3d.io.read_point_cloud(file_path) # PointCloud with 511026 points
 
 # Estimate normals (Optional)
-#TODO: # generalize parameters below (radius, max_nn)
+#TODO: # generalize parameters below   (radius, max_nn)
 kdtree_search = o3d.geometry.KDTreeSearchParamHybrid(radius= 0.1, max_nn= 16) 
 pcd.estimate_normals(search_param= kdtree_search, 
                      fast_normal_computation= True)
@@ -46,14 +46,25 @@ o3d.visualization.draw_geometries([inlier_pcd, outlier_pcd])
 
 #%% DBSCAN cllustering on a smaller sample
 
+# Let's select a sample, where we assume we got rid of all the planar regions
+pcd_sample = o3d.io.read_point_cloud(os.path.join(directory, "TLS_kitchen_sample.ply"))
+kdtree_search = o3d.geometry.KDTreeSearchParamHybrid(radius= 0.1, max_nn= 16) # 10 cm
+pcd_sample.estimate_normals(search_param= kdtree_search, 
+                            fast_normal_computation= True)
+
+# Skip RANSAC-step!
+
 # DBSCAN params: radius of 5 cm, min. 10 points to form a cluster
 labels = np.array(pcd.cluster_dbscan(eps=0.05, min_points=10)) 
+# The labels vary between -1 and n, where -1 indicate it is a “noise” point and 
+# values 0 to n are then the cluster labels given to the corresponding point.
 
+# Color the point cloud
 max_label = labels.max()
 colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
 colors[labels < 0] = 0
-pcd.colors = o3d.utility.Vector3dVector(colors[:, :3])
-o3d.visualization.draw_geometries([pcd])
+pcd_sample.colors = o3d.utility.Vector3dVector(colors[:, :3])
+o3d.visualization.draw_geometries([pcd_sample])
 
 #%%
 
