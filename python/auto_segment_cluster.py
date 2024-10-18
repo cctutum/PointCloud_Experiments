@@ -61,9 +61,10 @@ labels = np.array(pcd.cluster_dbscan(eps=0.05, min_points=10))
 
 # Color the point cloud
 max_label = labels.max()
-colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
+colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1)) # [R. G, B, Opacity]
 colors[labels < 0] = 0
-pcd_sample.colors = o3d.utility.Vector3dVector(colors[:, :3])
+colors_o3d = o3d.utility.Vector3dVector(colors[:, :3]) # Remove opacity
+pcd_sample.colors = colors_o3d
 o3d.visualization.draw_geometries([pcd_sample])
 
 #%%
