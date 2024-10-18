@@ -13,7 +13,6 @@ import os
 import numpy as np
 import open3d as o3d
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 
 #%% Step-1: Read point cloud data
 
