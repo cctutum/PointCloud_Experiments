@@ -78,6 +78,13 @@ mean_dist = np.mean(nearest_dist[:, 1:], axis= 0)
 # nth closest neighbors
 mean_dist_nthClosest = np.mean(nearest_dist[:, 1:]) # 6.7 mm
 
+# It is recommended to query 8 to 15 neighbors and to average it for a good
+# local representation of the noise ratio in the point cloud.
+
+
+
+ 
+
 
 
 
