@@ -32,6 +32,7 @@ from sklearn.neighbors import KDTree
 #%% Step-1: Read point cloud data
 
 directory = "../data"
+results_dir = "../results"
 os.makedirs(directory, exist_ok=True)
 filename = "the_researcher_desk.xyz"
 file_path = os.path.join(directory, filename)
@@ -81,12 +82,89 @@ mean_dist_nthClosest = np.mean(nearest_dist[:, 1:]) # 6.7 mm
 # It is recommended to query 8 to 15 neighbors and to average it for a good
 # local representation of the noise ratio in the point cloud.
 
+#%% Step-1: Finding a plane
 
+idx_samples = random.sample(range(len(xyz)), 3)
+pts = xyz[idx_samples]
 
- 
+# The cross product of two vectors generates an orthogonal one.
+# Define two vectors from the same point on the plane
+vecA = pts[1] - pts[0]
+vecB = pts[2] - pts[0]
+normal = np.cross(vecA, vecB)
 
+# Normalize the normal vector and then find a, b, c, d (i.e., d = -(ax+by+cz))
+# using one of three points (pts[0], pts[1] or pts[2])
+a, b, c = normal / np.linalg.norm(normal)
+d = -np.sum( normal * pts[1] )
 
+#%% Step-2: Point-to-Plane Distance - The threshold definition
 
+# The distance between point P(x1, y1, z1) and the given plane is the length of 
+# the projection of vector 'w' onto the unit normal vector 'n'
+# D = norm(dot(normal, w)) / norm(normal)
+# D = (a*x1 + b*y1 + c*z1 + d) / sqrt(a^2+b^2+c^2)
+
+# My interpretation: Project 'w' vector formed by point-P and plane on to the 
+# normal vector to get the vector component along the normal direction to the 
+# plane and then divide it by the length of the normal vector to get the vertical 
+# distance. 
+
+# Compute the vertical distance of all the points to the plane (the three points
+# used to form the plane should be excluded, however their distance will be zero
+# anyways, so it doesn't matter)
+distance = (a*xyz[:,0] + b*xyz[:,1] + c*xyz[:,2] + d) / np.sqrt(a**2 + b**2 + c**2)
+distance = np.abs(distance)
+
+idx_candidates = np.where(distance <= d_threshold)[0] # inliers
+
+#%% Step-3: Iteration and function definition
+
+# We now need to iterate to find the optimal plane
+def ransac_plane(xyz, threshold= 0.05, iterations= 1000): 
+    inliers = []
+    n_points = len(xyz)
+    i = 1
+    while i < iterations:
+        idx_samples = random.sample(range(n_points), 3)
+        pts = xyz[idx_samples]
+        vecA = pts[1] - pts[0]
+        vecB = pts[2] - pts[0]
+        normal = np.cross(vecA, vecB)
+        a, b, c = normal / np.linalg.norm(normal)
+        d = -np.sum( normal * pts[1] )
+        distance = (a*xyz[:,0] + b*xyz[:,1] + c*xyz[:,2] + d) / np.sqrt(a**2 + b**2 + c**2)
+        idx_candidates = np.where(np.abs(distance) <= threshold)[0]
+        if len(idx_candidates) > len(inliers):
+            equation = [a, b, c, d]
+            inliers = idx_candidates
+        i+=1
+    return equation, inliers
+
+#%% Step 4 (Final Step): Point Cloud Binary Segmentation
+
+eq, idx_inliers = ransac_plane(xyz, 0.01)
+inliers = xyz[idx_inliers]
+
+# filtering outliers quickly
+mask = np.ones(len(xyz), dtype=bool)
+mask[idx_inliers] = False
+outliers = xyz[mask]
+
+# Ploting
+ax = plt.axes(projection='3d')
+ax.scatter(inliers[:,0], inliers[:,1], inliers[:,2], c = 'cornflowerblue', s=0.02)
+ax.scatter(outliers[:,0], outliers[:,1], outliers[:,2], c = 'salmon', s=0.02)
+plt.show()
+
+# Save the results
+output_inliers_file = filename.split(".")[0] + "_inliers.xyz"
+file_path = os.path.join(results_dir, output_inliers_file)
+np.savetxt(file_path, inliers, fmt='%1.4f', delimiter=';')
+
+output_outliers_file = filename.split(".")[0] + "_outliers.xyz"
+file_path = os.path.join(results_dir, output_outliers_file)
+np.savetxt(file_path, outliers, fmt='%1.4f', delimiter=';')
 
 
 
