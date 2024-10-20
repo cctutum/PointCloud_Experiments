@@ -76,7 +76,7 @@ mean_dist = np.mean(nearest_dist[:, 1:], axis= 0)
 
 # To get a local representation of the mean distance of each point to its 
 # nth closest neighbors
-mean_dist_nthClosest = np.mean(nearest_dist[:, 1:], axis=1)
+mean_dist_nthClosest = np.mean(nearest_dist[:, 1:]) # 6.7 mm
 
 
 
