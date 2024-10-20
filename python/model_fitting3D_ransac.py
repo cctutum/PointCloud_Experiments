@@ -50,13 +50,33 @@ rgb = pcd[:, 3:]
 # Setting up the distance (d_threshold) separates inliers from outliers of a plane:
 # Average distance between neighboring points can be computed for the threshold
 # (below), 
-# Manual way: however we set it up manually here, i.e., 5 mm * 10 (0.005 * 10 = 0.05 m)
+# Manual way (however we set it up manually here, 
+# i.e., 5 mm * 10 (0.005 * 10 = 0.05 m):
 d_threshold = 0.05
 iterations = 1000
 
-# Automatic way:
-tree = KDTree(np.array(xyz), leaf_size=2)  
+# Automatic way (to speed up the process of querying the nearest neighbors 
+# for each point):
+tree = KDTree(xyz, leaf_size= 2)  
 
+# We can query the k-nearest neighbors for each point in the point cloud 
+nearest_dist, nearest_ind = tree.query(xyz, k= 8) 
+# Output: tuple of two numpy arrays
+# nearest_dist.shape = number of points x k -> 
+#           distances (sorted in ascending order) of k-neighbors for each point
+# We can ignore the first column, which is always zeros, because the every point
+# is compared to itself. So, the first column shows the distance to the closest
+# point. 
+# nearest_ind.shape = number of points x k -> indices of points
+
+# Average distance
+mean_dist = np.mean(nearest_dist[:, 1:], axis= 0)
+# array([0.0046, 0.0052 , 0.0059, 0.0067, 0.0074, 0.0081, 0.0087]) 
+# Average distance to nearest neighbor = 4.6 mm
+
+# To get a local representation of the mean distance of each point to its 
+# nth closest neighbors
+mean_dist_nthClosest = np.mean(nearest_dist[:, 1:], axis=1)
 
 
 
