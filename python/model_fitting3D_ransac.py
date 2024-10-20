@@ -34,6 +34,7 @@ from sklearn.neighbors import KDTree
 directory = "../data"
 results_dir = "../results"
 os.makedirs(directory, exist_ok=True)
+os.makedirs(results_dir, exist_ok=True)
 filename = "the_researcher_desk.xyz"
 file_path = os.path.join(directory, filename)
 
