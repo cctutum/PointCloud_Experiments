@@ -38,9 +38,7 @@ pcd.normals = o3d.utility.Vector3dVector(normals)
 
 o3d.visualization.draw_geometries([pcd])
 
-#%% Choose a meshing strategy
-
-# Strategy-1: Ball-Pivoting Algorithm (BPA)
+#%% Meshing Strategy-1: Ball-Pivoting Algorithm (BPA)
 
 # In theory, the "diameter of the ball" should be slightly larger than the 
 # average distance between points.
@@ -95,13 +93,34 @@ my_lods = lod_mesh_export(bpa_mesh,
                           "ply", 
                           results_dir)
 
-#
+# View mesh
+o3d.visualization.draw_geometries([my_lods[100_000]])
 
+#%% Meshing Strategy-2: Poisson’ reconstruction
 
+poisson_mesh = o3d.geometry.TriangleMesh.\
+                    create_from_point_cloud_poisson(
+                        pcd, 
+                        depth= 8, # default (the higher, the more detailed mesh)
+                        width= 0, # the target width of the finest level of the tree structure (octree). 
+                        # 'width' is ignored if 'depth' is specified.
+                        scale= 1.1, # the ratio between the diameter of the cube used for reconstruction 
+                        # and the diameter of the samples’ bounding cube
+                        linear_fit= False # if 'linear_fit= True', let the reconstructor use linear 
+                        # interpolation to estimate the positions of iso-vertices
+                    )[0]
 
+# It is often necessary to add a cropping step to clean unwanted artifacts
+bbox = pcd.get_axis_aligned_bounding_box()
+p_mesh_crop = poisson_mesh.crop(bbox)
 
+# Export mesh 
+output_path = os.path.join(results_dir, "poisson_mesh.ply")
+o3d.io.write_triangle_mesh(output_path, p_mesh_crop)
+# np.asarray(p_mesh_crop.triangles).shape = (190697, 3)
 
-
+# View mesh
+o3d.visualization.draw_geometries([p_mesh_crop])
 
 
 
