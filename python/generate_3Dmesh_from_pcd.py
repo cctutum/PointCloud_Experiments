@@ -25,7 +25,7 @@ file_path = os.path.join(directory, filename)
 point_cloud = np.loadtxt(file_path, skiprows= 1) 
 # point_cloud.shape = (1505010, 9)
 
-xyz = point_cloud[:, :3]
+xyz = point_cloud[:, :3] # (1_505_010, 3)
 rgb = point_cloud[:, 3:6] / 255
 normals = point_cloud[:, 6:]
 
@@ -38,4 +38,20 @@ pcd.normals = o3d.utility.Vector3dVector(normals)
 
 o3d.visualization.draw_geometries([pcd])
 
-#%% 
+#%% Choose a meshing strategy
+
+# Strategy-1: Ball-Pivoting Algorithm (BPA)
+
+# In theory, the "diameter of the ball" should be slightly larger than the 
+# average distance between points.
+
+distances = pcd.compute_nearest_neighbor_distance() # I wonder if this uses KDTree?
+# distances: List[float]
+# distances.shape = xyz.shape[0] = 1_505_010
+avg_dist = np.mean(distances)
+radius = 3 * avg_dist
+
+
+
+
+
