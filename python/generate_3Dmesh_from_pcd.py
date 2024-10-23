@@ -51,6 +51,67 @@ distances = pcd.compute_nearest_neighbor_distance() # I wonder if this uses KDTr
 avg_dist = np.mean(distances)
 radius = 3 * avg_dist
 
+bpa_mesh = o3d.geometry.TriangleMesh.\
+                create_from_point_cloud_ball_pivoting(
+                    pcd,
+                    o3d.utility.DoubleVector([radius, radius * 2])
+                    )
+                
+print(f"Number of triangles in 'bpa_mesh'= {np.asarray(bpa_mesh.triangles).shape[0]}")
+
+# Before exporting the mesh, we can downsample the result to an acceptable
+# number of triangles (e.g., 100K)
+dec_mesh = bpa_mesh.simplify_quadric_decimation(100_000)
+
+dec_mesh.remove_degenerate_triangles()
+dec_mesh.remove_duplicated_triangles()
+dec_mesh.remove_duplicated_vertices()
+dec_mesh.remove_non_manifold_edges()
+
+# Export mesh 
+output_path = os.path.join(results_dir, "bpa_mesh_100K.ply")
+o3d.io.write_triangle_mesh(output_path, dec_mesh)
+
+# Automate Downsampling + Export
+def lod_mesh_export(mesh, lods, filename_start, extension, path):
+    # lods: level-of-details
+    # extension: .ply, .obj, .stl, .gltf
+    mesh_lods = {}
+    for i in lods:
+        mesh_lod = mesh.simplify_quadric_decimation(i)
+        mesh_lod.remove_degenerate_triangles()
+        mesh_lod.remove_duplicated_triangles()
+        mesh_lod.remove_duplicated_vertices()
+        mesh_lod.remove_non_manifold_edges()
+        output_path = os.path.join(path, f"{filename_start}_{i // 1000}K.{extension}")
+        o3d.io.write_triangle_mesh(output_path, mesh_lod)
+        mesh_lods[i] = mesh_lod
+    print(f"Generation of {i} LoD successful")
+    return mesh_lods
+
+my_lods = lod_mesh_export(bpa_mesh, 
+                          [100_000, 50_000, 10_000, 1_000], 
+                          "bpa_LoD",
+                          "ply", 
+                          results_dir)
+
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
