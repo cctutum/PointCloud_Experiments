@@ -127,5 +127,65 @@ outlier_cloud.paint_uniform_color([0.6, 0.6, 0.6])
 #Visualize the inliers and outliers
 o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
 
-#%%
+#%% Multi-Order RANSAC & Euclidean Clustering (DBSCAN)
 
+segment_models = {} # a, b, c, d
+segments = {} # inlier points for each segment
+
+max_plane_idx = 10
+
+# RANSAC parameters
+d_threshold = 0.1
+ransac_n = 3
+num_iterations = 1_000
+
+# DBSCAN parameters
+epsilon = 0.15
+min_cluster_points = 5
+
+rest = pcd
+for i in range(max_plane_idx):
+    colors = plt.get_cmap("tab20")(i)
+    # RANSAC
+    segment_models[i], inliers = rest.segment_plane(
+                                        distance_threshold= d_threshold,
+                                        ransac_n= ransac_n,
+                                        num_iterations= num_iterations)
+    segments[i] = rest.select_by_index(inliers)
+    # DBSCAN
+    labels = np.array( segments[i].cluster_dbscan(
+                                            eps= epsilon, 
+                                            min_points= min_cluster_points))
+    candidates = [ len(np.where(labels == j)[0]) for j in np.unique(labels) ]
+    max_index = np.argmax(candidates)
+    best_candidate = int(np.unique(labels)[max_index])
+    rest = rest.select_by_index(inliers, invert= True)
+    rest += segments[i].select_by_index(
+                                list(np.where(labels != best_candidate)[0]) )
+    # Segmented plane (best candidate) updated after clustering
+    segments[i] = segments[i].select_by_index(
+        list(np.where(labels == best_candidate)[0]) )
+    segments[i].paint_uniform_color( list(colors[:3]) )
+    print(f"Segment= {i}/{max_plane_idx} done.")
+    
+o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)] + 
+                                  [rest])
+    
+#%% Euclidean Clustering Refinement
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
