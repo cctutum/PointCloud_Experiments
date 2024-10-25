@@ -176,7 +176,7 @@ o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)] +
 # You can start with viewing the remaining points
 # o3d.visualization.draw_geometries([rest])
     
-labels = np.array( pcd.cluster_dbscan(eps= 0.15, min_points= 55) )
+labels = np.array( rest.cluster_dbscan(eps= 0.15, min_points= 10) )
 
 # Available colormaps
 # from matplotlib import colormaps
@@ -186,9 +186,21 @@ max_label = labels.max()
 colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1)) # [R. G, B, Opacity]
 colors[labels < 0] = 0
 rest.colors = o3d.utility.Vector3dVector(colors[:, :3]) # Remove opacity
-o3d.visualization.draw_geometries([rest])
+o3d.visualization.draw_geometries([rest]) # these points are mostly assigned black color
+
+# OPTIONAL: To view only points that have colors other than black 
+# non_zero_mask = np.any(colors != 0, axis= 1)
+# non_zero_indices = np.where(non_zero_mask)[0]
+# rest_filtered = rest.select_by_index(non_zero_indices)
+# o3d.visualization.draw_geometries([rest_filtered])
     
-    
+# OPTIONAL: View all the segments and rest point clouds with final color assignment 
+o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)] + 
+                                  [rest])
+
+#%% Voxelization and Labelling
+
+
     
     
     
