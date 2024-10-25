@@ -98,3 +98,34 @@ o3d.visualization.draw_geometries([pcd_downsampled, outliers])
 
 #%% RANSAC Parameter Setting
 
+# If we were to select distance_threshold automatically (however we will not 
+# continue with this):
+nn_distance = np.mean(pcd.compute_nearest_neighbor_distance()) 
+# This gives ~5 cm as we set the voxel_size = 0.05 before
+
+#%% Point Cloud Segmentation with RANSAC
+
+distance_threshold = 0.1
+ransac_n = 3
+num_iterations = 1_000
+
+plane_model, inliers = pcd.segment_plane(
+    distance_threshold= distance_threshold,
+    ransac_n= 3, # for plane
+    num_iterations= 1000)
+[a, b, c, d] = plane_model
+
+print(f"Plane equation: {a:.2f}x + {b:.2f}y + {c:.2f}z + {d:.2f} = 0")
+
+inlier_cloud = pcd.select_by_index(inliers)
+outlier_cloud = pcd.select_by_index(inliers, invert= True)
+
+#Paint the clouds
+inlier_cloud.paint_uniform_color([1.0, 0, 0])
+outlier_cloud.paint_uniform_color([0.6, 0.6, 0.6])
+
+#Visualize the inliers and outliers
+o3d.visualization.draw_geometries([inlier_cloud, outlier_cloud])
+
+#%%
+
