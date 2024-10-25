@@ -171,17 +171,22 @@ for i in range(max_plane_idx):
 o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)] + 
                                   [rest])
     
-#%% Euclidean Clustering Refinement
+#%% Euclidean Clustering Refinement (on the remaining points)
     
+# You can start with viewing the remaining points
+# o3d.visualization.draw_geometries([rest])
     
-    
-    
-    
-    
-    
-    
-    
-    
+labels = np.array( pcd.cluster_dbscan(eps= 0.15, min_points= 55) )
+
+# Available colormaps
+# from matplotlib import colormaps
+# print(list(colormaps)) # list of 170 colormaps
+
+max_label = labels.max()
+colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1)) # [R. G, B, Opacity]
+colors[labels < 0] = 0
+rest.colors = o3d.utility.Vector3dVector(colors[:, :3]) # Remove opacity
+o3d.visualization.draw_geometries([rest])
     
     
     
