@@ -199,10 +199,65 @@ o3d.visualization.draw_geometries([segments[i] for i in range(max_plane_idx)] +
                                   [rest])
 
 #%% Voxelization and Labelling
+# By dividing a point cloud into small cubes, it becomes easier to understand 
+# a model's occupied and empty spaces.
 
+voxel_size = 0.5
 
+min_bound = pcd.get_min_bound()
+max_bound = pcd.get_max_bound()    
     
-    
-    
-    
-    
+
+'''
+Let's illustrate the case where you want to have voxels of "structural" 
+elements vs voxels of clutter that do not belong to structural elements.
+Without labeling, we could guide our choice based on whether or not they 
+belong to RANSAC segments or other segments; This means first concatenating 
+the segments from the RANSAC pass:
+'''
+pcd_ransac = o3d.geometry.PointCloud()
+for i in segments:
+    pcd_ransac += segments[i]
+
+# Voxel-ize structural elements
+voxel_grid_structural = o3d.geometry.VoxelGrid.\
+                                create_from_point_cloud(pcd_ransac, 
+                                                        voxel_size= voxel_size)
+                                
+# Voxel-ize clutter (rest) elements
+rest.paint_uniform_color([0.1, 0.1, 0.8])
+voxel_grid_clutter = o3d.geometry.VoxelGrid.\
+                                create_from_point_cloud(rest, 
+                                                        voxel_size= voxel_size)
+                                
+# View the voxels
+o3d.visualization.draw_geometries([voxel_grid_structural])
+# o3d.visualization.draw_geometries([voxel_grid_clutter, voxel_grid_structural])
+
+#%% Spatial Modeling
+
+'''
+Define a function that fits a voxel grid and returns both filled and empty spaces:
+(1) Determine the minimum and maximum coordinates of the point cloud, 
+(2) Calculate the dimensions of the voxel grid, 
+(3) Create an empty voxel grid, 
+(4) Calculate the indices of the occupied voxels, and 
+(5) Mark occupied voxels as True
+'''
+def fit_voxel_grid(point_cloud, voxel_size, min_b= False, max_b= False):
+    # (1) Determine the minimum and maximum coordinates of the point cloud
+    if type(min_b) == bool or type(max_b) == bool:
+        min_coords = np.min(point_cloud, axis=0)
+        max_coords = np.max(point_cloud, axis=0)
+    else:
+        min_coords = min_b
+        max_coords = max_b
+    # (2) Calculate the dimensions of the voxel grid
+    grid_dims = np.ceil((max_coords - min_coords) / voxel_size).astype(int)
+    # (3) Create an empty voxel grid
+    voxel_grid = np.zeros(grid_dims, dtype=bool)
+    # (4) Calculate the indices of the occupied voxels
+    indices = ((point_cloud - min_coords) / voxel_size).astype(int)
+    # (5) Mark occupied voxels as True
+    voxel_grid[indices[:, 0], indices[:, 1], indices[:, 2]] = True
+    return voxel_grid, indices
