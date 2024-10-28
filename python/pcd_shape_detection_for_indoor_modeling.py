@@ -311,10 +311,28 @@ np.savetxt(output_file_path,
            delimiter= ";", 
            fmt= "%1.9f")
 
+#%% Export Voxel Model
+
+from cube import cube
+
+def voxel_modelling(filename, indices, voxel_size):
+    voxel_assembly = []
+    with open(filename, "a") as f:
+        cpt = 0
+        for idx in indices:
+            voxel = cube(idx, voxel_size, cpt)
+            f.write(f"o {idx}  \n")
+            np.savetxt(f, voxel, fmt= '%s')
+            cpt += 1
+            voxel_assembly.append(voxel)
+    return voxel_assembly
+
+
+vrsac = voxel_modelling(os.path.join(results_dir, "ransac_vox.obj"), filled_ransac, 1)
+vrest = voxel_modelling(os.path.join(results_dir, "rest_vox.obj"), filled_rest, 1)
+vempty = voxel_modelling(os.path.join(results_dir, "empty_vox.obj"), empty_indices, 1)
+
 #%%
-
-
-
 
 
 
