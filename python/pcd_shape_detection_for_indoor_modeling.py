@@ -286,4 +286,38 @@ empty_indices = np.transpose(np.nonzero(~total_voxels))
 
 #%% Exporting 3D Datasets
 
+# Export Segmented Point Clouds
+
+xyz_segments = []
+for idx in segments:
+    print(idx, segments[idx])
+    a = np.asarray(segments[idx].points)
+    N = len(a)
+    b = idx * np.ones((N, 3+1)) # last column indicates the label-id
+    b[:, :-1] = a
+    xyz_segments.append(b)
+    
+rest_w_segments = np.hstack(
+                        (np.asarray(rest.points), 
+                        (labels + max_plane_idx).reshape(-1, 1))
+                            )
+
+xyz_segments.append(rest_w_segments)
+
+output_file_path = os.path.join(results_dir, filename.split(".")[0], ".xyz")
+
+np.savetxt(output_file_path, 
+           np.concatenate(xyz_segments), 
+           delimiter= ";", 
+           fmt= "%1.9f")
+
+#%%
+
+
+
+
+
+
+
+
 
