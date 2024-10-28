@@ -261,3 +261,29 @@ def fit_voxel_grid(point_cloud, voxel_size, min_b= False, max_b= False):
     # (5) Mark occupied voxels as True
     voxel_grid[indices[:, 0], indices[:, 1], indices[:, 2]] = True
     return voxel_grid, indices
+
+
+voxel_size = 0.3
+
+# Get the bounds of the original point cloud
+min_bound = pcd.get_min_bound()
+max_bound = pcd.get_max_bound()
+
+ransac_voxels, idx_ransac = fit_voxel_grid(pcd_ransac.points, voxel_size, min_bound, max_bound)
+rest_voxels, idx_rest = fit_voxel_grid(rest.points, voxel_size, min_bound, max_bound)
+
+# Gather the filled voxels from RANSAC Segmentation
+filled_ransac = np.transpose(np.nonzero(ransac_voxels))
+
+# Gather the filled remaining voxels (not belonging to any segments)
+filled_rest = np.transpose(np.nonzero(rest_voxels))
+
+# Compute and gather the remaining empty voxels
+total = pcd_ransac + rest
+total_voxels, idx_total = fit_voxel_grid(total.points, voxel_size, min_bound, max_bound)
+empty_indices = np.transpose(np.nonzero(~total_voxels))
+
+
+#%% Exporting 3D Datasets
+
+
