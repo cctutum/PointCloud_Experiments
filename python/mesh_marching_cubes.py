@@ -33,4 +33,36 @@ pcd = np.loadtxt(file_path, skiprows= 1, delimiter= ";")
 xyz = pcd[:, :3]
 rgb = pcd[:, 3:]
 
-#%%
+#%% Step-2: Bounds Computation
+
+mins = np.min(xyz, axis=0)
+maxs = np.max(xyz, axis=0)
+
+#%% Step-3: Creating a 3D Grid for the 3D Point Cloud
+
+voxel_size = 0.1 
+iso_level_percentile = 20
+
+x = np.arange(mins[0], maxs[0], voxel_size)
+y = np.arange(mins[1], maxs[1], voxel_size)
+z = np.arange(mins[2], maxs[2], voxel_size)
+x, y, z = np.meshgrid(x, y, z, indexing='ij')
+
+#%% Step-4: KD-Tree for Efficient Nearest Neighbor Search
+
+tree = cKDTree(xyz)
+
+#%% Step-5: Scalar Field: Distance to Nearest Point
+
+"""
+For each grid point (corner of a voxel), we are going to calculate the distance 
+to the nearest point in the point cloud using the KD-Tree. This distance value 
+becomes the scalar field value at that grid point.
+"""
+
+
+
+
+
+
+
