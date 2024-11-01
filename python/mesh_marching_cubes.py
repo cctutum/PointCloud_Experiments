@@ -28,4 +28,9 @@ os.makedirs(results_dir, exist_ok=True)
 filename = "holidays-hat.xyz"
 file_path = os.path.join(directory, filename)
 
-pcd = np.loadtxt(file_path, skiprows= 1)
+pcd = np.loadtxt(file_path, skiprows= 1, delimiter= ";")
+
+xyz = pcd[:, :3]
+rgb = pcd[:, 3:]
+
+#%%
