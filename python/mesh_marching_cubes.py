@@ -1,6 +1,6 @@
 """
-Poux, F., "3D Mesh fom Point CLoud: Python with Marching Cubes Tutorial", 3D Data Academy, October, 2024. 
-article-URL: https://learngeodata.eu/3d-mesh-from-point-cloud-python-with-marching-cubes-tutorial/?utm_source=mailpoet&utm_medium=email&utm_source_platform=mailpoet&utm_campaign=3D%20Youtube
+Poux, F., "Transform Point Clouds into 3D Meshes: A Python Guide", owards Data Science, Nov 1, 2024. 
+article-URL: https://towardsdatascience.com/transform-point-clouds-into-3d-meshes-a-python-guide-8b0407a780e6
 
 This tutorial dives deep into the Marching Cubes algorithm, a powerful technique 
 for meshing 3D point clouds using Python. Given point cloud is transformed into 
@@ -43,7 +43,7 @@ maxs = np.max(xyz, axis=0)
 
 #%% Step-3: Creating a 3D Grid for the 3D Point Cloud
 
-voxel_size = 0.1 
+voxel_size = 0.2 # changed from 0.1 to 0.2 since I subsampled the pcd with 0.2-spacing 
 iso_level_percentile = 20
 
 x = np.arange(mins[0], maxs[0], voxel_size)
@@ -73,6 +73,8 @@ iso_level = np.percentile(distances, iso_level_percentile)
 #%% Step-7: Apply Marching Cubes
 
 verts, faces, _, _ = measure.marching_cubes(scalar_field, level= iso_level)
+# verts.shape = (261502, 3)
+# faces.shape = (521222, 3)
 
 #%% Step-8: Scale and Translate Vertices Back to Original Coordinate System
 
